@@ -22,11 +22,33 @@
         android:layout_height="150dp"
         android:text="" />
 
-    <Button
-        android:id="@+id/buttonRSSI"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Get RSSI" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="93dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonRSSI"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Get RSSI" />
+
+        <Button
+            android:id="@+id/toggleLog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="start log" />
+
+        <Button
+            android:id="@+id/saveLog"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:enabled="false"
+            android:text="Save log" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/titleAcc"

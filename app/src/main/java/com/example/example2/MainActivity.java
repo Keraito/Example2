@@ -1,9 +1,10 @@
 package com.example.example2;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.content.Context;
 import android.graphics.Color;
@@ -16,7 +17,9 @@ import android.os.Environment;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -53,6 +56,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     private TextView currentX, currentY, currentZ, titleAcc, textRssi;
 
     Button buttonRssi;
+    Button toggleLog;
+    boolean logActive = false;
+    Button saveLog;
+
+    private String m_Text = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,7 +76,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         // Create the button
         buttonRssi = (Button) findViewById(R.id.buttonRSSI);
-        
+        toggleLog = (Button) findViewById(R.id.toggleLog);
+        saveLog = (Button) findViewById(R.id.saveLog);
+
         // Set the sensor manager
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
@@ -88,6 +98,9 @@ public class MainActivity extends Activity implements SensorEventListener {
         // Set the wifi manager
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
+        appendLog("\n\nNew run. Started at " + System.currentTimeMillis() + "\n");
+
+
         // Create a click listener for our button.
         buttonRssi.setOnClickListener(new OnClickListener() {
             @Override
@@ -98,6 +111,60 @@ public class MainActivity extends Activity implements SensorEventListener {
                 textRssi.setText("\n\tSSID = " + wifiInfo.getSSID()
                         + "\n\tRSSI = " + wifiInfo.getRssi()
                         + "\n\tLocal Time = " + System.currentTimeMillis());
+            }
+        });
+
+        toggleLog.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggle();
+            }
+        });
+
+        saveLog.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                builder.setTitle("Title");
+//                // Set up the input
+//                final EditText input = new EditText(this);
+//// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+//                input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+//                builder.setView(input);
+//
+//// Set up the buttons
+//                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        m_Text = input.getText().toString();
+//                    }
+//                });
+//                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        dialog.cancel();
+//                    }
+//                });
+
+//                builder.show();
+
+
+                showDialog();
+                toggle();
+
+//                Toast toast = Toast.makeText(getApplicationContext(), "saved", Toast.LENGTH_LONG);
+//                try {
+//                    // Does not work
+//                    boolean abc = toast.getView().isShown();
+//                    if (abc)
+//                        toast.cancel();
+//                    else
+//                        toast.show();
+//                } catch (Exception e) {
+//                    toast.show();
+//                }
+
+
             }
         });
     }
@@ -140,52 +207,78 @@ public class MainActivity extends Activity implements SensorEventListener {
       Accelerometer z value
      */
         float aZ = event.values[2];
-        appendLog(Arrays.toString(event.values));
 
-        // display the current x,y,z accelerometer values
-        currentX.setText(String.format("%f",aX));
-        currentY.setText(Float.toString(aY));
-        currentZ.setText(Float.toString(aZ));
+        if (logActive) {
+            appendLog(Arrays.toString(event.values));
+            // display the current x,y,z accelerometer values
+            currentX.setText(String.format("%f", aX));
+            currentY.setText(Float.toString(aY));
+            currentZ.setText(Float.toString(aZ));
 
-        if ((Math.abs(aX) > Math.abs(aY)) && (Math.abs(aX) > Math.abs(aZ))) {
-            titleAcc.setTextColor(Color.RED);
+            if ((Math.abs(aX) > Math.abs(aY)) && (Math.abs(aX) > Math.abs(aZ))) {
+                titleAcc.setTextColor(Color.RED);
+            }
+            if ((Math.abs(aY) > Math.abs(aX)) && (Math.abs(aY) > Math.abs(aZ))) {
+                titleAcc.setTextColor(Color.BLUE);
+            }
+            if ((Math.abs(aZ) > Math.abs(aY)) && (Math.abs(aZ) > Math.abs(aX))) {
+                titleAcc.setTextColor(Color.GREEN);
+            }
         }
-        if ((Math.abs(aY) > Math.abs(aX)) && (Math.abs(aY) > Math.abs(aZ))) {
-            titleAcc.setTextColor(Color.BLUE);
-        }
-        if ((Math.abs(aZ) > Math.abs(aY)) && (Math.abs(aZ) > Math.abs(aX))) {
-            titleAcc.setTextColor(Color.GREEN);
-        }
+
+
 
 
     }
 
-    public void appendLog(String text)
-    {
+
+    public void showDialog(){
+        final EditText txtUrl = new EditText(this);
+
+// Set the default text to a link of the Queen
+        txtUrl.setHint("Walking / Stationary / Running");
+
+        new AlertDialog.Builder(this)
+                .setTitle("What have you measured?")
+                .setMessage("Add text that will be added to the log.")
+                .setView(txtUrl)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String url = txtUrl.getText().toString();
+                        appendLog("####### " + url + " #######");
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                })
+                .show();
+    }
+
+    private void toggle() {
+        logActive = !logActive;
+        saveLog.setEnabled(logActive);
+        toggleLog.setText(!logActive ? "Start log" : "Stop log");
+    }
+
+    public void appendLog(String text) {
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File logFile = new File(downloadDir, "log.txt");
-        if (!logFile.exists())
-        {
-            try
-            {
+        if (!logFile.exists()) {
+            try {
                 logFile.createNewFile();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
-        try
-        {
+        try {
             //BufferedWriter for performance, true to set append to file flag
             BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
             buf.append(text);
             buf.newLine();
             buf.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
