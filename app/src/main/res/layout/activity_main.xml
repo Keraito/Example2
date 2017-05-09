@@ -19,7 +19,7 @@
     <TextView
         android:id="@+id/textRSSI"
         android:layout_width="300dp"
-        android:layout_height="150dp"
+        android:layout_height="640dp"
         android:text="" />
 
     <LinearLayout

@@ -3,6 +3,7 @@ package com.example.example2;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Smart Phone Sensing Example 2 - 2017. Working with sensors.
@@ -59,6 +61,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     Button toggleLog;
     boolean logActive = false;
     Button saveLog;
+    List<ScanResult> scanResults;
+    int wifiLogCount = 0;
 
     private String m_Text = "";
 
@@ -98,7 +102,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         // Set the wifi manager
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        appendLog("\n\nNew run. Started at " + System.currentTimeMillis() + "\n");
+        appendLog("\n\nNew run. Started at " + System.currentTimeMillis() + "\n", "log");
 
 
         // Create a click listener for our button.
@@ -107,10 +111,19 @@ public class MainActivity extends Activity implements SensorEventListener {
             public void onClick(View v) {
                 // get the wifi info.
                 wifiInfo = wifiManager.getConnectionInfo();
+                // wifiManager.startScan();
+                scanResults = wifiManager.getScanResults();
+
                 // update the text.
                 textRssi.setText("\n\tSSID = " + wifiInfo.getSSID()
                         + "\n\tRSSI = " + wifiInfo.getRssi()
-                        + "\n\tLocal Time = " + System.currentTimeMillis());
+                        + "\n\tLocal Time = " + System.currentTimeMillis()
+                        + "\n\tscanresultsize = " + scanResults.size()
+                        + "\n\tscanresutl = " + scanResults);
+                String fileName = "wifiLog" + wifiLogCount;
+                clearFile(fileName);
+                appendLog(scanResults.toString(), fileName);
+                wifiLogCount++;
             }
         });
 
@@ -209,7 +222,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         float aZ = event.values[2];
 
         if (logActive) {
-            appendLog(Arrays.toString(event.values));
+            appendLog(Arrays.toString(event.values), "log");
             // display the current x,y,z accelerometer values
             currentX.setText(String.format("%f", aX));
             currentY.setText(Float.toString(aY));
@@ -227,12 +240,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
 
 
-
-
     }
 
 
-    public void showDialog(){
+    public void showDialog() {
         final EditText txtUrl = new EditText(this);
 
 // Set the default text to a link of the Queen
@@ -245,7 +256,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String url = txtUrl.getText().toString();
-                        appendLog("####### " + url + " #######");
+                        appendLog("####### " + url + " #######", "log");
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -261,9 +272,9 @@ public class MainActivity extends Activity implements SensorEventListener {
         toggleLog.setText(!logActive ? "Start log" : "Stop log");
     }
 
-    public void appendLog(String text) {
+    public void appendLog(String text, String fileName) {
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File logFile = new File(downloadDir, "log.txt");
+        File logFile = new File(downloadDir, "logs/" + fileName + ".txt");
         if (!logFile.exists()) {
             try {
                 logFile.createNewFile();
@@ -283,4 +294,14 @@ public class MainActivity extends Activity implements SensorEventListener {
             e.printStackTrace();
         }
     }
+
+    public void clearFile(String fileName) {
+        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File logFile = new File(downloadDir, "logs/" + fileName + ".txt");
+
+
+            logFile.delete();
+
+    }
+
 }
