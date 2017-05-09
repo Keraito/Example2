@@ -22,10 +22,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -107,22 +110,24 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         // Create a click listener for our button.
         buttonRssi.setOnClickListener(new OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 // get the wifi info.
                 wifiInfo = wifiManager.getConnectionInfo();
                 // wifiManager.startScan();
                 scanResults = wifiManager.getScanResults();
+                toJSON((scanResults));
 
                 // update the text.
                 textRssi.setText("\n\tSSID = " + wifiInfo.getSSID()
                         + "\n\tRSSI = " + wifiInfo.getRssi()
                         + "\n\tLocal Time = " + System.currentTimeMillis()
                         + "\n\tscanresultsize = " + scanResults.size()
-                        + "\n\tscanresutl = " + scanResults);
+                        + "\n\tlogCount = " + wifiLogCount);
                 String fileName = "wifiLog" + wifiLogCount;
                 clearFile(fileName);
-                appendLog(scanResults.toString(), fileName);
+                appendLog(toJSON(scanResults), fileName);
                 wifiLogCount++;
             }
         });
@@ -304,4 +309,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
+
+    public String toJSON(List<ScanResult> list){
+        List<wifiPoint> shortList = new ArrayList<>(list.size());
+        for (ScanResult scanResult : list) {
+            shortList.add(new wifiPoint(scanResult.SSID,scanResult.BSSID, scanResult.level));
+        }
+        return new Gson().toJson(shortList);
+    }
 }
+
